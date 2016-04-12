@@ -1,7 +1,7 @@
 #!/bin/bash
 # Mirek190 ROM Android 5.0 flasher
 # See http://techtablets.com/forum/topic/x98_pro_android_5-1_mirek190_v1-0-rom/
-# 
+#
 # Flasher converted from Windows batch script by Adam Hose
 # Licensed under WTFPL
 
@@ -17,7 +17,7 @@ function echo_status {
 
 function CHECK_FILE {
     if ! [ -e "$1" ]; then
-        echo_status "$1 missing, check it and try again"
+        echo -e "\033[31m$1 missing, check it and try again\e[0m"
         exit 1
     fi
 }
@@ -127,6 +127,28 @@ function INSTALL_REPARTITION {
 }
 
 
+function BUTTONS {
+    SystemUI_apk="data/pro_buttons/$1-buttons/SystemUI.apk"
+
+    CHECK_FILE "$SystemUI_apk"
+
+    adb kill-server
+    add wait-for-device
+    adb root
+
+    sleep 5
+
+    adb shell mount -o rw,remount /system
+    adb push "$SystemUI_apk" /data
+    adb shell rm -f /system/priv-app/SystemUI/SystemUI.apk
+    adb shell cp -R /data/SystemUI.apk /system/priv-app/SystemUI/
+    adb shell chmod 644 /system/priv-app/SystemUI/SystemUI.apk
+    adb shell chown root.root /system/priv-app/SystemUI/SystemUI.apk
+    adb shell rm -rf /data/SystemUI.apk
+    adb reboot
+}
+
+
 if ! [ $(id -u) -eq 0 ]; then
     echo "Flasher must run as root, exiting" >> /dev/stderr
     exit 1
@@ -150,6 +172,14 @@ case "$1" in
 
         INSTALL_REPARTITION "$2"
         ;;
+    buttons)
+        if [ "$#" -ne 2 ]; then
+            echo "buttons require argument number (3, 5 or 6)"
+            exit 1
+        fi
+
+        BUTTONS "$2"
+        ;;
     *)
         echo -e "Need one of the following arguments\n" >> /dev/stderr
 
@@ -166,6 +196,11 @@ case "$1" in
         echo "install_repartition: " >> /dev/stderr
         echo -e "\tYou can change partitions sizes" >> /dev/stderr
         echo -e "\tWILL REMOVE WINDOWS AND WINDOWS BOOT MENU" >> /dev/stderr
+        echo "" >> /dev/stderr
+
+        echo "buttons: " >> /dev/stderr
+        echo -e "\tInstall buttons mod" >> /dev/stderr
+        echo -e "\tInstall 3 (default), 5 or 6 button mod" >> /dev/stderr
 
         exit 1
 esac
