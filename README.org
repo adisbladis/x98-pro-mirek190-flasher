@@ -1,0 +1,4 @@
+* Mirek190 flasher for Linux
+Flasher for Android ROM http://techtablets.com/forum/topic/x98_pro_android_5-1_mirek190_v1-0-rom/
+
+Since the flasher tool is only maintained for Windows batch scripting I'm maintaining my own bash version of the tool
